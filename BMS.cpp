@@ -1,37 +1,54 @@
-PathResult BritishMuseumSearch(const Graph& g, char start, char goal) {
-    PathResult best; best.name = "BMS";
-    vector<char> path; path.push_back(start);
-    unordered_set<char> onpath; onpath.insert(start);
-    double bestCost = numeric_limits<double>::infinity();
-    double curCost = 0.0;
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+#include <queue>
+#include <algorithm>
+using namespace std;
 
-    function<void(char)> dfs = [&](char u) {
-        if (u == goal) {
-            if (curCost < bestCost - 1e-12 ||
-                (fabs(curCost - bestCost) <= 1e-12 && (best.path.empty() || path < best.path))) {
-                bestCost = curCost;
-                best.found = true;
-                best.path = path;
-                best.cost = curCost;
-            }
-            return;
-        }
-        vector<Edge> nbrs = g.neighbors(u);
-        sort(nbrs.begin(), nbrs.end(), [](const Edge& a, const Edge& b){
-            if (a.to != b.to) return a.to < b.to;
-            return a.w < b.w;
-        });
-        for (const auto &e : nbrs) {
-            if (onpath.count(e.to)) continue; // simple paths only
-            onpath.insert(e.to);
-            path.push_back(e.to);
-            curCost += e.w;
-            dfs(e.to);
-            curCost -= e.w;
-            path.pop_back();
-            onpath.erase(e.to);
-        }
+void exhaustiveSearch(unordered_map<char, vector<char>>& adjacencyList, char source, char target) {
+    auto comparator = [](const pair<char, vector<char>>& first, const pair<char, vector<char>>& second) {
+        if (first.first != second.first) return first.first > second.first;
+        return first.second.size() > second.second.size();
     };
-    dfs(start);
-    return best;
+    
+    priority_queue<pair<char, vector<char>>, vector<pair<char, vector<char>>>, decltype(comparator)> searchQueue(comparator);
+    searchQueue.push({source, {source}});
+    
+    while (!searchQueue.empty()) {
+        auto currentState = searchQueue.top();
+        searchQueue.pop();
+        
+        char currentNode = currentState.first;
+        vector<char> currentPath = currentState.second;
+        
+        if (currentNode == target) {
+            for (char vertex : currentPath) {
+                cout << vertex << " ";
+            }
+            cout << endl;
+            continue;
+        }
+        
+        for (char adjacentNode : adjacencyList[currentNode]) {
+            if (find(currentPath.begin(), currentPath.end(), adjacentNode) == currentPath.end()) {
+                vector<char> extendedPath = currentPath;
+                extendedPath.push_back(adjacentNode);
+                searchQueue.push({adjacentNode, extendedPath});
+            }
+        }
+    }
+}
+
+int main() {
+    unordered_map<char, vector<char>> adjacencyList;
+    adjacencyList['S'] = {'A', 'B'};
+    adjacencyList['A'] = {'D', 'B', 'S'};
+    adjacencyList['B'] = {'A', 'C', 'S'};
+    adjacencyList['C'] = {'E', 'B'};
+    adjacencyList['D'] = {'A', 'G'};
+    adjacencyList['E'] = {'C'};
+    adjacencyList['G'] = {'D'};
+    
+    exhaustiveSearch(adjacencyList, 'S', 'G');
+    return 0;
 }
