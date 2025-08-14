@@ -152,7 +152,6 @@ PathResult BritishMuseumSearch(const Graph& g, char start, char goal) {
     return best;
 }
 
-// 2) DFS (plain DFS path to goal, no global visited beyond current path)
 PathResult DFS_plain(const Graph& g, char start, char goal) {
     PathResult res; res.name = "DFS";
     vector<char> path; path.push_back(start);
@@ -187,7 +186,6 @@ PathResult DFS_plain(const Graph& g, char start, char goal) {
     return res;
 }
 
-// 3) BFS (minimum cost and optimal path) -> Uniform Cost Search (Dijkstra)
 PathResult BFS_min_cost(const Graph& g, char start, char goal) {
     auto ans = ORACLE(g, start, goal);
     ans.name = "BFS (min-cost/UCS)";
